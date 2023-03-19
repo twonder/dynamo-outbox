@@ -1,0 +1,33 @@
+{
+  "name": "dynamodb-outbox-cdk-app",
+  "version": "1.0.0",
+  "description": "An API GAteway exposing a shopping cart that uses DynamoDB to store and publish data",
+  "private": true,
+  "scripts": {
+    "postinstall": "(cd lambdas && npm install);",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk"
+  },
+  "author": {
+    "name": "Tim Wondergem <timwondergem@gmail.com>",
+    "url": "https://serverless.pub"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.109",
+    "@types/node": "*",
+    "aws-cdk": "*",
+    "esbuild": "*",
+    "typescript": "~4.6.0"
+  },
+  "dependencies": {
+    "@aws-cdk/core": "^1.181.0",
+    "@middy/core": "^4.0.0",
+    "@middy/event-normalizer": "^4.0.0",
+    "aws-cdk-lib": "^2.0.0",
+    "aws-lambda": "^1.0.7",
+    "aws-sdk": "^2.1261.0",
+    "constructs": "^10.0.0"
+  }
+}

@@ -1,8 +1,7 @@
 import * as AWS from 'aws-sdk';
-import { DynamoDBStreamEvent } from "aws-lambda";
-
 import middy from '@middy/core';
 import eventNormalizerMiddleware from '@middy/event-normalizer';
+import { DynamoDBStreamEvent } from "aws-lambda";
 import { PutEventsRequestEntryList } from 'aws-sdk/clients/eventbridge';
 
 var eventBridgeClient = new AWS.EventBridge({apiVersion: '2015-10-07'});
@@ -21,7 +20,4 @@ const baseHandler = async (event: DynamoDBStreamEvent) => {
   await eventBridgeClient.putEvents({ Entries: eventBridgeEntries }).promise();
 };
 
-const handler = middy(baseHandler)
-  .use(eventNormalizerMiddleware());
-
-export { handler };
+export default { handler: middy(baseHandler).use(eventNormalizerMiddleware()) };

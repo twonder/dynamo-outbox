@@ -1,15 +1,10 @@
 import * as AWS from 'aws-sdk';
 
-import middy from "@middy/core";
-// import validator from "@middy/validator";
-import httpErrorHandler from "@middy/http-error-handler";
-import jsonBodyParser from "@middy/http-json-body-parser";
-import httpResponseSerializerMiddleware from '@middy/http-response-serializer';
-
 import { CartCreated } from './events/cart-created';
 import { CartsRepository } from './repositories/cart-repository';
 import { OutboxRepository } from './repositories/outbox-repository';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidV4 } from 'uuid';
+import { addMiddleWare } from './helpers';
 
 var docClient = new AWS.DynamoDB.DocumentClient({apiVersion: '2012-08-10'});
 
@@ -20,25 +15,21 @@ const baseHandler = async (event: any) => {
   const { items } = event.body;
 
   const cartCreated: CartCreated =  {
-    cartId: uuidv4(),
+    cartId: uuidV4(),
     accountId: 'account-1',
     userId: 'user-1',
     items: items,
     occurred: new Date()
   };
 
-  var item = cartsRepository.createCart(cartCreated)
+  var item = cartsRepository.createCart(cartCreated);
 
-  try {
-    await docClient.transactWrite({
-        TransactItems: [
-          { Put: item },
-          { Put: outboxRepository.publish('CartCreated', cartCreated) },
-        ]
-      }).promise();
-  } catch(e) {
-    console.log(JSON.stringify(e));
-  }
+  await docClient.transactWrite({
+    TransactItems: [
+      { Put: item },
+      { Put: outboxRepository.publish('CartCreated', cartCreated) },
+    ]
+  }).promise();
 
   var returnObject:any = {
     ...cartCreated,
@@ -52,25 +43,6 @@ const baseHandler = async (event: any) => {
     body: returnObject
   }
 };
+;
 
-const handler = middy(baseHandler)
-  .use(jsonBodyParser())
-  .use(
-    httpResponseSerializerMiddleware({
-      serializers: [
-        {
-          regex: /^application\/json$/,
-          serializer: ({ body }) => JSON.stringify(body)
-        }
-      ],
-      defaultContentType: 'application/json'
-    })
-  )
-  // .use(
-  //   validator({
-  //     inputSchema: placeOrderCommand,
-  //   })
-  // )
-  .use(httpErrorHandler());
-
-export { handler };
+export default { handler: addMiddleWare(baseHandler) };

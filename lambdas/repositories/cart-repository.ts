@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk';
-import { CartItem } from '../events/models/cart-item';
+import { Cart } from '../models/cart';
 import { CartCreated } from '../events/cart-created';
 
 export class CartsRepository {
@@ -11,7 +11,14 @@ export class CartsRepository {
         this.docClient = docClient;
     }
 
-    createCart(cartCreated: CartCreated) : AWS.DynamoDB.DocumentClient.Put {
+    public updateCart(cart: Cart) : AWS.DynamoDB.DocumentClient.Put {
+        return {
+            TableName: this.tableName,
+            Item: this.mapToCartItem(cart)
+        }
+    }
+
+    public createCart(cartCreated: CartCreated) : AWS.DynamoDB.DocumentClient.Put {
         return {
             TableName : this.tableName,
             Item: {
@@ -24,22 +31,40 @@ export class CartsRepository {
         };
     }
 
-    async getCart(cartId: string) {
-        return this.docClient.get({
+    async getCart(cartId: string | undefined): Promise<Cart | null> {
+        if (cartId == null) return null;
+
+        var response = await this.docClient.get({
             TableName: this.tableName,
             Key: {
               PK: cartId
             }
         }).promise();
+
+        if (!response.Item) return null;
+
+        return this.mapToCart(response.Item);
     }
 
-    addItemsToCart(cart: any, items: CartItem[]) : AWS.DynamoDB.DocumentClient.Put {
+    private mapToCart(item: AWS.DynamoDB.DocumentClient.AttributeMap): Cart {
+        var cart = new Cart();
+
+        cart.cartId = item.PK;
+        cart.accountId = item.accountId;
+        cart.userId = item.UserId;
+        cart.status = item.status;
+        cart.items = item.items;
+
+        return cart;
+    }
+
+    private mapToCartItem(cart: Cart): any {
         return {
-            TableName: this.tableName,
-            Item: {
-                ...cart,
-                items: [...cart.items, items]
-            }
-        }
+            PK: cart.cartId,
+            accountId: cart.accountId,
+            userId: cart.userId,
+            status: cart.status,
+            items: cart.items
+        };
     }
 }

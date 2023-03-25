@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidV4 } from 'uuid';
 
 export class OutboxRepository {
     docClient: AWS.DynamoDB.DocumentClient;
@@ -17,7 +17,7 @@ export class OutboxRepository {
         return {
             TableName : this.tableName,
             Item: {
-              messageId: uuidv4(),
+              messageId: uuidV4(),
               detailType: eventType,
               detail: JSON.stringify(event),
               ttl: tomorrow.getTime()

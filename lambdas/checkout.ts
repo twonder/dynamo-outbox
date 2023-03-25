@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
 
-import { ItemsAddedToCart } from './events/items-added-to-cart';
+import { CartCheckedOut } from './events/cart-checked-out';
 import { CartsRepository } from './repositories/cart-repository';
 import { OutboxRepository } from './repositories/outbox-repository';
 import { addMiddleWare } from './helpers';
@@ -11,9 +11,9 @@ const baseHandler = async (event: any) => {
   const cartsRepository = new CartsRepository(`${process.env.TABLE_NAME}`, docClient);
   const outboxRepository = new OutboxRepository(`${process.env.OUTBOX_TABLE_NAME}`, docClient);
 
-  const { body, pathParameters } = event;
+  const { pathParameters } = event;
 
-  if (body == null || pathParameters?.cartId == undefined || body.items == null) {
+  if (pathParameters?.cartId == undefined) {
     return {
       statusCode: 400
     }
@@ -28,20 +28,19 @@ const baseHandler = async (event: any) => {
     }
   }
 
-  cart.addItems(body.items);
+  cart.checkout();
 
-  const itemAddedToCart: ItemsAddedToCart =  {
+  const cartCheckedOut: CartCheckedOut =  {
     cartId: cartId,
     accountId: cart.accountId,
-    userId: 'user-1',
-    items: body.items,
+    userId: cart.userId,
     occurred: new Date()
   };
 
   await docClient.transactWrite({
     TransactItems: [
       { Put: cartsRepository.updateCart(cart) },
-      { Put: outboxRepository.publish('ItemsAddedToCart', itemAddedToCart) },
+      { Put: outboxRepository.publish('CartCheckedOut', cartCheckedOut) },
     ]
   }).promise();
 

@@ -10,11 +10,12 @@ import { Queue } from 'aws-cdk-lib/aws-sqs';
 
 export class DynamoOutbox extends Construct {
     readonly outboxTable: Table;
+    readonly bus: EventBus;
 
     constructor(scope: Construct, id: string, props: DynamoOutboxProps) {
         super(scope, id);
 
-        const bus = new EventBus(this, 'Bus', {
+        this.bus = new EventBus(this, 'Bus', {
             eventBusName: `${props?.applicationName}-stream`
         });
 
@@ -38,17 +39,17 @@ export class DynamoOutbox extends Construct {
         const dlq = new Queue(this, 'DeadLetterQueue');
 
         const forwarderLambda = new NodejsFunction(this, 'ForwardingLambda', {
-            entry: join(__dirname, 'lambdas', 'outbox-handler.ts'),
+            entry: join('lambdas', 'outbox-handler.ts'),
             bundling: {
                 externalModules: [
                     'aws-sdk', // Use the 'aws-sdk' available in the Lambda runtime
                 ],
             },
             environment: {
-                EVENT_BUS_NAME: bus.eventBusName,
+                EVENT_BUS_NAME: this.bus.eventBusName,
                 SOURCE_PUBLISHER: props.applicationName,
             },
-            depsLockFilePath: join(__dirname, 'package-lock.json'),
+            depsLockFilePath: join('package-lock.json'),
             runtime: Runtime.NODEJS_16_X,
         });
 
@@ -59,11 +60,11 @@ export class DynamoOutbox extends Construct {
             retryAttempts: 3
         } as DynamoEventSourceProps));
 
-        bus.grantPutEventsTo(forwarderLambda);
+        this.bus.grantPutEventsTo(forwarderLambda);
     }
 }
 
 export interface DynamoOutboxProps{
     applicationName: string;
-    publishingLambdas: Function[]
+    publishingLambdas: Function[];
 }

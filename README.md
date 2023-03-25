@@ -1,76 +1,70 @@
-# APIGateway with CORS, Lambdas, and CRUD on DynamoDB
-<!--BEGIN STABILITY BANNER-->
----
+# Summary
+The following pattern is serverless implementation of the transactional outbox pattern.   The transactional outbox is an event publishing pattern that leverages a database transaction to write to one more tables for the storage schema and a separate table that temporarily stores the outgoing message.  The outbox messages are then forwarded from the table to a messaging system.
 
-![Stability: Stable](https://img.shields.io/badge/stability-Stable-success.svg?style=for-the-badge)
+This pattern uses API Gateway and Lambda to create an API, DynamoDB to store data, DynamoDB Streams as the change data capture source of events that need to be forwarded, and EventBridge to publish those events.
 
-> **This is a stable example. It should successfully build out of the box**
->
-> This examples is built on Construct Libraries marked "Stable" and does not have any infrastructure prerequisites to build.
+# Architecture
+## Target architecture
+![target architecture](architecture.png "Target architecture")
+1. Handle the cart request from the Rest API
+1. Save the cart data to the Cart Table (2a) and save the event message to the Outbox Table (2b) using the TransactWriteItems operation.
+1. DynamoDB Streams write the Outbox Table changes asynchronously in a time-ordered log.
+1. The Outbox Forwarder Lambda is triggered by change records from the DynamoDB stream
+1. The Outbox Forwarder Lambda sends the events to the Event Bus
 
----
-<!--END STABILITY BANNER-->
+## Target technology stack
+This pattern uses the following AWS Services:
+- AWS API Gateway: An API Gateway Rest API is used to expose the shopping cart functionality.
+- AWS Lambda: Lambda Functions are back the Rest API and for forwarding messages from the DynamoDB Table to the Event Bus.
+- AWS DynamoDB: A Table is used to store the shopping cart data and another for Outbox messages.
+- AWS DynamoDB Streams: A Stream is enabled on the Outbox Table to trigger the messages to be forwarded to the Event Bus.
+- AWS EventBridge: Event Bus for publishing events to.
+- AWS CloudWatch Logs: A Log Group is used to write all the events that are published to the Event bus.
 
-This an example of an APIGateway with CORS enabled, pointing to five Lambdas executing CRUD operations on a single DynamoDB table.
+# Tools
+AWS CDK is a software development framework for defining cloud infrastructure in code and provisioning it through AWS CLoudFormation.
 
-## Build
+# Prerequisites
+The following software is necessary in order to deploy this pattern:
+- An active AWS account
+- A valid user and credentials, with the correct permissions to run the AWS CDK
+- [npm](https://docs.npmjs.com/about-npm) installed and configured
+- [AWS CDK Toolkit](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html) installed and configured
 
-To build this app, you need to be in this example's root folder. Then run the following:
+## Product versions
+This pattern has been built and tested using the following tools and versions:
+- AWS CDK 2.70.0
+- npm 8.19.2
 
-```bash
-npm install -g aws-cdk
-npm install
-npm run build
+
+# Setup
+## Install npm packages
+From the root of the repository run the following command:
+```terminal
+npm i
 ```
 
-This will install the necessary CDK, then this example's dependencies, then the lambda functions' dependencies, and then build your TypeScript files and your CloudFormation template.
-
-## Deploy
-
-Run `cdk deploy`. This will deploy / redeploy your Stack to your AWS Account.
-
-After the deployment you will see the API's URL, which represents the url you can then use.
-
-## The Component Structure
-
-The whole component contains:
-
-- An API, with CORS enabled on all HTTP Methods. (Use with caution, for production apps you will want to enable only a certain domain origin to be able to query your API.)
-- Lambda pointing to `lambdas/create.ts`, containing code for __storing__ an item  into the DynamoDB table.
-- Lambda pointing to `lambdas/delete-one.ts`, containing code for __deleting__ an item from the DynamoDB table.
-- Lambda pointing to `lambdas/get-all.ts`, containing code for __getting all items__ from the DynamoDB table.
-- Lambda pointing to `lambdas/get-one.ts`, containing code for __getting an item__ from the DynamoDB table.
-- Lambda pointing to `lambdas/update-one.ts`, containing code for __updating an item__ in the DynamoDB table.
-- A DynamoDB table `items` that stores the data.
-- Five `LambdaIntegrations` that connect these Lambdas to the API.
-
-## CDK Toolkit
-
-The [`cdk.json`](./cdk.json) file in the root of this repository includes
-instructions for the CDK toolkit on how to execute this program.
-
-After building your TypeScript code, you will be able to run the CDK toolkit commands as usual:
-
-```bash
-    $ cdk ls
-    <list all stacks in this program>
-
-    $ cdk synth
-    <generates and outputs cloudformation template>
-
-    $ cdk deploy
-    <deploys stack to your account>
-
-    $ cdk diff
-    <shows diff against deployed stack>
+## Bootstrap the CDK (Optional)
+If you have not already bootsraped the CDK, you will need to run the following command supplying the your account and region:
+```terminal
+cdk bootstrap aws://{your account}/{your region}
 ```
 
-Database Stack
-    - Standard database
-Event Stack
-    - Outbox construct (AppName, EventBus name)
-        - Event bus
-        - Outbox table
-        - Event Forwarder
-API Stack
-    - API Lambdas
+## Login to your AWS Account
+Log into your AWS account and make sure that your AWS CLI credentials are set and configured properly.
+
+If you have not setup your AWS credentials, please follow the [following instructions](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
+
+<insert content>
+
+# Deploying the AWS resources
+From the root of the repository run the following command:
+```terminal
+npm run build && cdk deploy
+```
+
+# Cleanup
+From the root of the repository run the following command:
+```terminal
+cdk destroy
+```

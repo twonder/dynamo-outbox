@@ -55,9 +55,7 @@ export class ShoppingCartDynamoDBOutboxStack extends Stack {
       });
 
       const cartResource = api.root.addResource('cart');
-      cartResource.addMethod('POST', new LambdaIntegration(createCartLambda), {
-        apiKeyRequired: true
-      });
+      cartResource.addMethod('POST', new LambdaIntegration(createCartLambda));
 
       const cartItem = cartResource.addResource('{cartId}');
       cartItem.addResource('add-items').addMethod('PUT', new LambdaIntegration(addItemsLambda));

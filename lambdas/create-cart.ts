@@ -43,6 +43,7 @@ const baseHandler = async (event: any) => {
     body: returnObject
   }
 };
-;
 
-export default { handler: addMiddleWare(baseHandler) };
+const handler = addMiddleWare(baseHandler);
+
+export { handler };

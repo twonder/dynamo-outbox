@@ -50,4 +50,6 @@ const baseHandler = async (event: any) => {
   }
 };
 
-export default { handler: addMiddleWare(baseHandler) };
+const handler = addMiddleWare(baseHandler);
+
+export { handler };

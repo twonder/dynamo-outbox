@@ -17,10 +17,5 @@ export function addMiddleWare(handler: any) {
             defaultContentType: 'application/json'
             })
         )
-        // .use(
-        //   validator({
-        //     inputSchema: placeOrderCommand,
-        //   })
-        // )
         .use(httpErrorHandler());
 }

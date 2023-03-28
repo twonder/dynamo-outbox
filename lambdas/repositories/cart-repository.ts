@@ -51,7 +51,7 @@ export class CartsRepository {
 
         cart.cartId = item.PK;
         cart.accountId = item.accountId;
-        cart.userId = item.UserId;
+        cart.userId = item.userId;
         cart.status = item.status;
         cart.items = item.items;
 

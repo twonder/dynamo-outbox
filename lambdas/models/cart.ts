@@ -1,3 +1,5 @@
+import { CartItem } from "../events/models/cart-item";
+
 export class Cart {
     cartId: string;
     accountId: string;
@@ -21,12 +23,23 @@ export class Cart {
         this.items = [...itemObjects, ...this.items.filter(i => itemObjects.map(ib => ib.itemId).indexOf(i.itemId) < 0)];
     }
 
+    removeItems(items: CartItem[]): void {
+        var updatedItems = this.items.map(cartItem => {
+            var matchingItem = items.find(i => i.itemId == cartItem.itemId);
+            if (!matchingItem){
+                return cartItem;
+            }
+
+            return {
+                itemId: cartItem.itemId,
+                quantity: cartItem.quantity - matchingItem.quantity
+            } as CartItem;
+        });
+
+        this.items = updatedItems.filter(i => i.quantity > 0);
+    }
+
     checkout(): void {
         this.status = "CHECKOUT"
     }
-};
-
-export interface CartItem {
-    itemId: string;
-    quantity: number;
 };

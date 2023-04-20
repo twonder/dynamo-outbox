@@ -23,7 +23,6 @@ export class CartsRepository {
             TableName : this.tableName,
             Item: {
                 PK: cartCreated.cartId,
-                accountId: cartCreated.accountId,
                 userId: cartCreated.userId,
                 status: "OPEN",
                 items: cartCreated.items
@@ -50,7 +49,6 @@ export class CartsRepository {
         var cart = new Cart();
 
         cart.cartId = item.PK;
-        cart.accountId = item.accountId;
         cart.userId = item.userId;
         cart.status = item.status;
         cart.items = item.items;
@@ -61,7 +59,6 @@ export class CartsRepository {
     private mapToCartItem(cart: Cart): any {
         return {
             PK: cart.cartId,
-            accountId: cart.accountId,
             userId: cart.userId,
             status: cart.status,
             items: cart.items

@@ -13,11 +13,12 @@ const baseHandler = async (event: any) => {
   const outboxRepository = new OutboxRepository(`${process.env.OUTBOX_TABLE_NAME}`, docClient);
 
   const { items } = event.body;
+  // replace this with logged in user id
+  const userId = 'user-1';
 
   const cartCreated: CartCreated =  {
     cartId: uuidV4(),
-    accountId: 'account-1',
-    userId: 'user-1',
+    userId: userId,
     items: items,
     occurred: new Date()
   };

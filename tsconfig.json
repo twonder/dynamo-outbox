@@ -23,6 +23,7 @@
     "skipLibCheck": true
   },
   "include": [
-    "*.ts"
-, "constructs/outbox-construct.ts"  ]
+    "*.ts",
+    "**/*.ts"
+  ]
 }

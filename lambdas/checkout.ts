@@ -12,6 +12,8 @@ const baseHandler = async (event: any) => {
   const outboxRepository = new OutboxRepository(`${process.env.OUTBOX_TABLE_NAME}`, docClient);
 
   const { pathParameters } = event;
+  // replace this with logged in user id
+  const userId = 'user-1';
 
   if (pathParameters?.cartId == undefined) {
     return {
@@ -32,8 +34,7 @@ const baseHandler = async (event: any) => {
 
   const cartCheckedOut: CartCheckedOut =  {
     cartId: cartId,
-    accountId: cart.accountId,
-    userId: cart.userId,
+    userId: userId,
     occurred: new Date()
   };
 

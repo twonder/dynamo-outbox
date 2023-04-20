@@ -20,4 +20,6 @@ const baseHandler = async (event: DynamoDBStreamEvent) => {
   await eventBridgeClient.putEvents({ Entries: eventBridgeEntries }).promise();
 };
 
-export default { handler: middy(baseHandler).use(eventNormalizerMiddleware()) };
+const handler = middy(baseHandler).use(eventNormalizerMiddleware());
+
+export { handler };
